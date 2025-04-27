@@ -126,14 +126,13 @@ namespace BusinessLogic
                 double radius = 12;
                 Random random = new();
 
-                // Prostsze generowanie kierunku
-                int xRandom = random.Next(0, 2) * 2 - 1; // -1 lub 1
-                int yRandom = random.Next(0, 2) * 2 - 1; // -1 lub 1
+                int xRandom = random.Next(0, 2) * 2 - 1;
+                int yRandom = random.Next(0, 2) * 2 - 1; 
 
                 double x = random.Next((int)radius, mapWidth - (int)radius);
                 double y = random.Next((int)radius, mapHeight - (int)radius);
 
-                string color = "#0000FF"; // Stały niebieski kolor
+                string color = "#0000FF";
 
                 this.AddNewBall(repository.GetSize() + 1, x, y, radius, color, xRandom, yRandom);
             }

@@ -6,7 +6,6 @@ public abstract class BallRepositoryAPI
     {
         return new BallRepository();
     }
-
     public abstract void AddBall(BallAPI obj);
     public abstract void ClearStorage();
     public abstract List<BallAPI> GetAllBalls();

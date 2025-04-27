@@ -1,7 +1,5 @@
 namespace Data;
 public abstract class BallAPI{
-
-
     public static BallAPI Generate(int ID, double X, double Y, double radius, string color, int XDirection, int YDirection){
         return new Ball(ID,  X,  Y, radius, color, XDirection, YDirection);
     }

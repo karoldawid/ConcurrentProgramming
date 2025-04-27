@@ -70,12 +70,10 @@ namespace Presentation.ModelView
                 RaisePropertyChanged(nameof(Amount));
             }
         }
-
         private void StartBalls()
         {
    
             _pauseFlag = true;
-            //_resumeFlag = false;
 
             StartCommand.RaiseCanExecuteChanged();
             StopCommand.RaiseCanExecuteChanged();
