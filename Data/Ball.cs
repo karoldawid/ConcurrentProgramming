@@ -1,50 +1,33 @@
-﻿//____________________________________________________________________________________________________________________________________
-//
-//  Copyright (C) 2024, Mariusz Postol LODZ POLAND.
-//
-//  To be in touch join the community by pressing the `Watch` button and get started commenting using the discussion panel at
-//
-//  https://github.com/mpostol/TP/discussions/182
-//
-//_____________________________________________________________________________________________________________________________________
+namespace Data;
+public abstract class BallAPI{
 
-namespace TP.ConcurrentProgramming.Data
-{
-  internal class Ball : IBall
-  {
-    #region ctor
 
-    internal Ball(Vector initialPosition, Vector initialVelocity)
-    {
-      Position = initialPosition;
-      Velocity = initialVelocity;
+    public static BallAPI Generate(int ID, double X, double Y, double radius, string color, int XDirection, int YDirection){
+        return new Ball(ID,  X,  Y, radius, color, XDirection, YDirection);
     }
 
-    #endregion ctor
+    public int ID { get; set; }
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Radius { get; set; }
+    public string Color { get; set; }
+    public int XDirection { get; set; }
+    public int YDirection { get; set; }
 
-    #region IBall
-
-    public event EventHandler<IVector>? NewPositionNotification;
-
-    public IVector Velocity { get; set; }
-
-    #endregion IBall
-
-    #region private
-
-    private Vector Position;
-
-    private void RaiseNewPositionChangeNotification()
+    private class Ball : BallAPI
     {
-      NewPositionNotification?.Invoke(this, Position);
+        public Ball(int ID, double X, double Y, double radius, string color, int XDirection, int YDirection)
+        {
+            this.ID = ID;
+            this.X = X;
+            this.Y = Y;
+            this.Color = color;
+            this.Radius = radius;
+            this.XDirection = XDirection;
+            this.YDirection = YDirection;
+            
+        }
+
     }
 
-    internal void Move(Vector delta)
-    {
-      Position = new Vector(Position.x + delta.x, Position.y + delta.y);
-      RaiseNewPositionChangeNotification();
     }
-
-    #endregion private
-  }
-}
