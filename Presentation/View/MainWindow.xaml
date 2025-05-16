@@ -3,57 +3,104 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Presentation.ModelView"
         Title="Ball Simulation"
-        Height="600" Width="800"
-        Background="White"
-        SizeToContent="WidthAndHeight">
+        WindowState="Maximized"
+        Background="White">
+
 
     <Window.DataContext>
         <local:ModelView />
     </Window.DataContext>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Viewbox Stretch="Uniform">
+        <Grid Width="1200" Height="800" Background="White">
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0" HorizontalAlignment="Center" Margin="10">
-            <TextBlock Text="Ball count:" VerticalAlignment="Center" Margin="5,0"/>
-            <TextBox Name="AmountTextBox" Width="50" Height="25" Text="{Binding Amount}" Margin="5,0"/>
-            <Button Content="Start" Width="70" Height="25" Command="{Binding StartCommand}" Margin="5,0"/>
-            <Button Content="Stop" Width="70" Height="25" Command="{Binding StopCommand}" Margin="5,0"/>
-            <Button Content="Add" Width="70" Height="25" Command="{Binding SummonCommand}" Margin="5,0"/>
-            <Button Content="Clear" Width="70" Height="25" Command="{Binding ClearCommand}" Margin="5,0"/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Top"
+                        Margin="0,20,0,0"
+                        Height="60">
 
-        <Border Grid.Row="1" Margin="20" BorderBrush="Green" BorderThickness="1"
-                Width="700" Height="500" HorizontalAlignment="Center" VerticalAlignment="Top">
-            <ItemsControl ItemsSource="{Binding Balls}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas Background="White">
-                            <Canvas.Effect>
-                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#FFD3D3D3"/>
-                            </Canvas.Effect>
-                        </Canvas>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemContainerStyle>
-                    <Style TargetType="ContentPresenter">
-                        <Setter Property="Canvas.Left" Value="{Binding X}" />
-                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Path Fill="Blue" Stroke="DarkBlue">
-                            <Path.Data>
-                                <EllipseGeometry RadiusX="{Binding Radius}" RadiusY="{Binding Radius}"/>
-                            </Path.Data>
-                        </Path>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Border>
-    </Grid>
+                <TextBlock Text="Ball count:" 
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           Margin="10,0"/>
+
+                <TextBox Text="{Binding BallCount}"
+                         Width="60"
+                         Height="30"
+                         Margin="10,0"
+                         VerticalAlignment="Center"/>
+
+                <Button Content="Start" 
+                        Command="{Binding StartCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="10,0"
+                        VerticalAlignment="Center"/>
+
+                <Button Content="Stop" 
+                        Command="{Binding StopCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="10,0"
+                        VerticalAlignment="Center"/>
+
+                <Button Content="Add" 
+                        Command="{Binding AddCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="10,0"
+                        VerticalAlignment="Center"/>
+
+                <Button Content="Clear" 
+                        Command="{Binding ClearCommand}"
+                        Width="80"
+                        Height="30"
+                        Margin="10,0"
+                        VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Border BorderBrush="Green" 
+                    BorderThickness="3"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="0,60,0,0">
+                <ItemsControl ItemsSource="{Binding Balls}" 
+                              Width="{Binding CanvasWidth}" 
+                              Height="{Binding CanvasHeight}"
+                              Background="White">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Background="White">
+                                <Canvas.Effect>
+                                    <DropShadowEffect BlurRadius="10" 
+                                                     ShadowDepth="0" 
+                                                     Color="#FFD3D3D3"/>
+                                </Canvas.Effect>
+                            </Canvas>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}" />
+                            <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Path Fill="#FF0066CC" Stroke="#FF003366">
+                                <Path.Data>
+                                    <EllipseGeometry RadiusX="{Binding r}"
+                                                     RadiusY="{Binding r}"/>
+                                </Path.Data>
+                            </Path>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+        </Grid>
+    </Viewbox>
 </Window>

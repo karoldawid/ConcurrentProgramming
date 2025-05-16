@@ -3,124 +3,121 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Presentation.Model;
 using Presentation.ModelView.MVVMCore;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Data;
+using System.Windows;
 
 namespace Presentation.ModelView
 {
-    public class ModelView : BaseViewModel
+    public class ModelView : BaseViewModel, INotifyPropertyChanged
     {
         private MainAPI modelLayer;
 
-        private string _amount = "";
+        private string _ballCount = "";
+        public double _tableWidth = 1000;
+        public double _tableHeight = 600;
+        private double _canvasHeight = 600;
+        private double _canvasWidth = 1000;
 
-        public int _width = 700;
-        public int _height = 500;
-
-        private bool _pauseFlag = false;
-        private bool _clearFlag = false;
+        private bool _isRunning = false;
+        private bool _canClear = false;
 
         public ModelView()
         {
-            this.modelLayer = MainAPI.CreateMap(_width, _height);
-            Balls = new ObservableCollection<BallAPI>(modelLayer.GetBalls());
+            this.modelLayer = MainAPI.GenerateTable(_tableWidth, _tableHeight);
 
-            SummonCommand = new RelayCommand(SummonBalls, () => !_clearFlag);
-            ClearCommand = new RelayCommand(ClearBalls, () => _clearFlag);
-            StartCommand = new RelayCommand(StartBalls, () => !_pauseFlag);
-            StopCommand = new RelayCommand(StopBalls, () => _pauseFlag);
+            AddCommand = new RelayCommand(AddBalls, () => !_canClear);
+            ClearCommand = new RelayCommand(ClearBalls, () => _canClear);
+            StartCommand = new RelayCommand(StartSimulation, () => !_isRunning);
+            StopCommand = new RelayCommand(StopSimulation, () => _isRunning);
         }
 
-        public ObservableCollection<BallAPI> Balls { get; set; }
-       
-        public RelayCommand SummonCommand { get; }
+        public ObservableCollection<BallModelAPI> Balls => this.modelLayer.Balls;
+
+        public RelayCommand AddCommand { get; }
         public RelayCommand ClearCommand { get; }
         public RelayCommand StartCommand { get; }
         public RelayCommand StopCommand { get; }
 
-   
-        public string Amount
+        public double CanvasWidth
         {
-            get => _amount;
+            get => _canvasWidth;
             set
             {
-                _amount = value;
+                _canvasWidth = value;
+                RaisePropertyChanged();
+            }
+
+        }
+
+        public double CanvasHeight
+        {
+            get => _canvasHeight;
+            set
+            {
+                _canvasHeight = value;
+                RaisePropertyChanged();
+            }
+
+        }
+
+        public string BallCount
+        {
+            get => _ballCount;
+            set
+            {
+                _ballCount = value;
                 RaisePropertyChanged();
             }
         }
 
-        private void SummonBalls()
+        private void AddBalls()
         {
             try
             {
-                int ballsNum = int.Parse(_amount);
-                _clearFlag = true;
-                 SummonCommand.RaiseCanExecuteChanged();
-                 ClearCommand.RaiseCanExecuteChanged();
+                int count = int.Parse(_ballCount);
+                if (count < 0) throw new ArgumentException();
 
-                if (ballsNum < 0)
-                    throw new ArgumentException("Not a positive integer");
-
-                modelLayer.CreateBalls(ballsNum);
-                Balls = new ObservableCollection<BallAPI>(modelLayer.GetBalls());
-                RaisePropertyChanged(nameof(Balls));
+                _canClear = true;
+                modelLayer.GenerateBalls(count);
+                UpdateCommandStates();
             }
-            catch (Exception)
+            catch
             {
-                _amount = "";
-                RaisePropertyChanged(nameof(Amount));
-            }
-        }
-        private void StartBalls()
-        {
-   
-            _pauseFlag = true;
-
-            StartCommand.RaiseCanExecuteChanged();
-            StopCommand.RaiseCanExecuteChanged();
-
-            Tick();
-        }
-
-        private void StopBalls()
-        {
-        
-            _pauseFlag = false;
-
-            StartCommand.RaiseCanExecuteChanged();
-            StopCommand.RaiseCanExecuteChanged();
-        }
-
-        public async void Tick()
-        {
-            while (_pauseFlag)
-            {
-                await Task.Delay(5);
-                modelLayer.Move();
-
-                Balls = new ObservableCollection<BallAPI>(modelLayer.GetBalls());
-                RaisePropertyChanged(nameof(Balls));
-              
+                BallCount = "";
             }
         }
 
-        public void ClearBalls()
+        private void StartSimulation()
+        {
+            _isRunning = true;
+            modelLayer.Update();
+            UpdateCommandStates();
+        }
+
+        private void StopSimulation()
+        {
+            _isRunning = false;
+            modelLayer.PauseMovement();
+            UpdateCommandStates();
+        }
+
+        private void ClearBalls()
         {
             modelLayer.ClearMap();
-            _pauseFlag = false;
-            _clearFlag = false;
+            _isRunning = false;
+            _canClear = false;
+            BallCount = "";
+            UpdateCommandStates();
+        }
 
-            SummonCommand.RaiseCanExecuteChanged();
+        private void UpdateCommandStates()
+        {
+            AddCommand.RaiseCanExecuteChanged();
             ClearCommand.RaiseCanExecuteChanged();
-
-            _amount = "";
-
-            
-            Balls = new ObservableCollection<BallAPI>(modelLayer.GetBalls());
-            RaisePropertyChanged(nameof(Balls));
-            RaisePropertyChanged(nameof(Amount));
             StartCommand.RaiseCanExecuteChanged();
             StopCommand.RaiseCanExecuteChanged();
-              
         }
     }
 }
