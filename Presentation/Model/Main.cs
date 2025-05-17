@@ -7,70 +7,55 @@ namespace Presentation.Model
 {
     public abstract class MainAPI
     {
-        public static MainAPI GenerateTable(double tableWidth, double tableHeight)
-        {
-            return new Main(tableWidth, tableHeight);
-        }
+        public static MainAPI GenerateTable(double tableWidth, double tableHeight) => new Main(tableWidth, tableHeight);
 
+        public abstract ObservableCollection<BallModelAPI> Balls { get; set; }
         public abstract void Update();
-        public abstract List<BallDataAPI> GetBalls();
         public abstract void GenerateBalls(int amount);
         public abstract void ClearMap();
         public abstract void PauseMovement();
-        private ObservableCollection<BallModelAPI> _ballModel = new ObservableCollection<BallModelAPI>();
-        public ObservableCollection<BallModelAPI> Balls
-        {
-            get => _ballModel;
-            set => _ballModel = value;
-        }
+        public abstract List<BallDataAPI> GetBalls();
 
         private class Main : MainAPI
         {
-            private double tableWidth;
-            private double tableHeight;
-
+            private readonly double tableWidth;
+            private readonly double tableHeight;
             private readonly BallLogicAPI ballLogic;
+            private ObservableCollection<BallModelAPI> _ballModel = new ObservableCollection<BallModelAPI>();
 
             public Main(double tableWidth, double tableHeight)
             {
                 this.tableWidth = tableWidth;
                 this.tableHeight = tableHeight;
-                this.ballLogic = BallLogicAPI.GenerateLogic(tableWidth, tableHeight);
-            }
-            public override void Update()
-            {
-                this.ballLogic.RunAnimation();
+                ballLogic = BallLogicAPI.GenerateLogic(tableWidth, tableHeight);
             }
 
-            public override void PauseMovement()
+            public override ObservableCollection<BallModelAPI> Balls
             {
-
-                this.ballLogic.PauseAnimation();
+                get => _ballModel;
+                set => _ballModel = value;
             }
 
-            public override List<BallDataAPI> GetBalls()
-            {
-                return this.ballLogic.GetBalls();
-            }
+            public override List<BallDataAPI> GetBalls() => ballLogic.GetBalls();
+
+            public override void Update() => ballLogic.RunAnimation();
+
+            public override void PauseMovement() => ballLogic.PauseAnimation();
 
             public override void GenerateBalls(int amount)
             {
-
-                this.ballLogic.GenerateBallSet(amount);
+                ballLogic.GenerateBallSet(amount);
                 _ballModel.Clear();
-
-                foreach (BallDataAPI ball in ballLogic.GetBalls())
+                foreach (var ball in ballLogic.GetBalls())
                 {
                     _ballModel.Add(BallModelAPI.GenerateBallModel(ball));
                 }
-
             }
 
             public override void ClearMap()
             {
-                this.ballLogic.ClearTable();
+                ballLogic.ClearTable();
                 _ballModel.Clear();
-
             }
         }
     }

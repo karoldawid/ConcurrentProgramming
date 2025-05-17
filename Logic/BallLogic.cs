@@ -12,28 +12,27 @@ namespace Logic
             return new BallLogic(tableWidth, tableHeight);
         }
 
-        public abstract void GenerateBall(int ID, double x, double y, double r, string colour, int dirX, int dirY);
         public abstract double GetTableWidth();
         public abstract double GetTableHeight();
         public abstract List<BallDataAPI> GetBalls();
-        public abstract void UpdateBall(BallDataAPI ball);
+        public abstract void ClearTable();
+        public abstract void GenerateBall(int ID, double x, double y, double r, string colour, int dirX, int dirY);
         public abstract void GenerateBallSet(int amount);
         public abstract void GenerateRandomBall();
-        public abstract void ClearTable();
         public abstract void Collision();
-        public abstract double Distance(BallDataAPI ballA, BallDataAPI ballB);
-        public abstract void ElasticRebound(BallDataAPI ballA, BallDataAPI ballB);
-        public abstract bool CollisionEvent(BallDataAPI ballA, BallDataAPI ballB);
         public abstract BallDataAPI? CollidingBalls(BallDataAPI actualBall);
+        public abstract bool CollisionEvent(BallDataAPI ballA, BallDataAPI ballB);
+        public abstract void ElasticRebound(BallDataAPI ballA, BallDataAPI ballB);
+        public abstract double Distance(BallDataAPI ballA, BallDataAPI ballB);
         public abstract void WallCollision(BallDataAPI ball);
-        public abstract void PauseAnimation();
         public abstract void RunAnimation();
+        public abstract void PauseAnimation();
+        public abstract void UpdateBall(BallDataAPI ball);
 
         private class BallLogic : BallLogicAPI
         {
             private readonly double tableWidth;
             private readonly double tableHeight;
-
             private readonly DataManagerAPI dataManager;
             private bool _duringAction;
 
@@ -44,6 +43,17 @@ namespace Logic
                 this.dataManager = DataManagerAPI.GenerateData(tableWidth, tableHeight, "white");
                 _duringAction = false;
             }
+
+            public override double GetTableWidth() => tableWidth;
+            public override double GetTableHeight() => tableHeight;
+
+            public override List<BallDataAPI> GetBalls() => dataManager.GetBalls();
+            public override void ClearTable()
+            {
+                PauseAnimation();
+                dataManager.ClearBalls();
+            }
+
             public override void GenerateBall(int ID, double x, double y, double r, string colour, int dirX, int dirY)
             {
                 Random random = new Random();
@@ -70,21 +80,15 @@ namespace Logic
                         }
                     }
 
-                    if (isPlaced)
-                    {
-                        dataManager.AddBall(ball);
-                        return;
-                    }
+                    if (isPlaced) dataManager.AddBall(ball);
                 }
             }
+
             public override void GenerateBallSet(int amount)
             {
-                for (int i = 0; i < amount; i++)
-                {
-                    GenerateRandomBall();
-                }
-
+                for (int i = 0; i < amount; i++) GenerateRandomBall();
             }
+
             public override void GenerateRandomBall()
             {
                 double r = 0;
@@ -97,32 +101,16 @@ namespace Logic
 
                 GenerateBall(dataManager.GetBalls().Count + 1, x, y, r, colour, dirX, dirY);
             }
-            public override void ClearTable()
-            {
-                PauseAnimation();
-                dataManager.ClearBalls();
-            }
+
             public override void Collision()
             {
                 foreach (var ball in GetBalls())
                 {
                     var other = CollidingBalls(ball);
-                    if (other != null)
-                    {
-                        ElasticRebound(ball, other);
-                    }
+                    if (other != null) ElasticRebound(ball, other);
                 }
             }
-            public override double Distance(BallDataAPI ballA, BallDataAPI ballB)
-            {
-                return Math.Sqrt(Math.Pow(ballA.X - ballB.X, 2) + Math.Pow(ballA.Y - ballB.Y, 2));
-            }
-            public override bool CollisionEvent(BallDataAPI ballA, BallDataAPI ballB)
-            {
-                double ballsDistance = Distance(ballA, ballB);
-                double rSum = ballA.r + ballB.r;
-                return ballsDistance <= rSum;
-            }
+
             public override BallDataAPI? CollidingBalls(BallDataAPI actualBall)
             {
                 foreach (var ball in GetBalls())
@@ -132,6 +120,27 @@ namespace Logic
                 }
                 return null;
             }
+
+            public override bool CollisionEvent(BallDataAPI ballA, BallDataAPI ballB)
+            {
+                return Distance(ballA, ballB) <= (ballA.r + ballB.r);
+            }
+
+            public override double Distance(BallDataAPI ballA, BallDataAPI ballB)
+            {
+                return Math.Sqrt(Math.Pow(ballA.X - ballB.X, 2) + Math.Pow(ballA.Y - ballB.Y, 2));
+            }
+
+            public override void ElasticRebound(BallDataAPI ballA, BallDataAPI ballB)
+            {
+                int tempX = ballA.dirX;
+                int tempY = ballA.dirY;
+                ballA.dirX = ballB.dirX;
+                ballA.dirY = ballB.dirY;
+                ballB.dirX = tempX;
+                ballB.dirY = tempY;
+            }
+
             public override void WallCollision(BallDataAPI ball)
             {
                 if (ball.X - ball.r <= 0 || ball.X + ball.r >= tableWidth)
@@ -145,50 +154,6 @@ namespace Logic
                     ball.dirY = -ball.dirY;
                     ball.Y = Math.Clamp(ball.Y, ball.r, tableHeight - ball.r);
                 }
-            }
-
-            public void isMoving(object sender, PropertyChangedEventArgs e)
-            {
-                BallDataAPI ball = (BallDataAPI)sender;
-                if (e.PropertyName == nameof(BallDataAPI.posX) || e.PropertyName == nameof(BallDataAPI.posY))
-                {
-
-                    UpdateBall(ball);
-                    ball.IsActive = false;
-                }
-            }
-            public override void PauseAnimation()
-            {
-                _duringAction = false;
-            }
-
-            public override void UpdateBall(BallDataAPI ball)
-            {
-
-                if (!ball.IsActive)
-                    return;
-
-                WallCollision(ball);
-                var otherBall = CollidingBalls(ball);
-                if (otherBall != null)
-                {
-                    ElasticRebound(ball, otherBall);
-                }
-
-
-                ball.X += ball.dirX;
-                ball.Y += ball.dirY;
-            }
-            public override void ElasticRebound(BallDataAPI ballA, BallDataAPI ballB)
-            {
-                int tempX = ballA.dirX;
-                int tempY = ballA.dirY;
-
-                ballA.dirX = ballB.dirX;
-                ballA.dirY = ballB.dirY;
-
-                ballB.dirX = tempX;
-                ballB.dirY = tempY;
             }
 
             public override void RunAnimation()
@@ -208,15 +173,32 @@ namespace Logic
                 });
             }
 
-            public override List<BallDataAPI> GetBalls()
+            public override void PauseAnimation()
             {
-                return dataManager.GetBalls();
+                _duringAction = false;
             }
 
-            public override double GetTableWidth() => tableWidth;
+            public override void UpdateBall(BallDataAPI ball)
+            {
+                if (!ball.IsActive) return;
 
-            public override double GetTableHeight() => tableHeight;
+                WallCollision(ball);
+                var otherBall = CollidingBalls(ball);
+                if (otherBall != null) ElasticRebound(ball, otherBall);
 
+                ball.X += ball.dirX;
+                ball.Y += ball.dirY;
+            }
+
+            private void isMoving(object sender, PropertyChangedEventArgs e)
+            {
+                BallDataAPI ball = (BallDataAPI)sender;
+                if (e.PropertyName == nameof(BallDataAPI.posX) || e.PropertyName == nameof(BallDataAPI.posY))
+                {
+                    UpdateBall(ball);
+                    ball.IsActive = false;
+                }
+            }
         }
     }
 }

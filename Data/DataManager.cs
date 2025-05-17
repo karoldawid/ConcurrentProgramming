@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using Data;
 
@@ -15,71 +13,31 @@ namespace Data
         }
 
         public abstract void AddBall(BallDataAPI ball);
-        public abstract void StartMovingBalls();
-        public abstract void StopMovingBalls();
         public abstract List<BallDataAPI> GetBalls();
         public abstract void ClearBalls();
+        public abstract void StartMovingBalls();
+        public abstract void StopMovingBalls();
 
         private class DataManager : DataManagerAPI
         {
-            private List<Thread> _threads;
-            private bool _active = false;
-            private object _lock = new object();
-            private SimulationTableAPI table;
-            private double height;
-            private double width;
+            private readonly SimulationTableAPI table;
+            private readonly List<Thread> _threads;
+            private readonly object _lock = new object();
+            private bool _active;
+            private readonly double height;
+            private readonly double width;
 
             public DataManager(double height, double width, string colour)
             {
-                this.table = SimulationTableAPI.GenerateBoard(height, width, colour);
                 this.height = height;
                 this.width = width;
-                this._threads = new();
-
-
+                table = SimulationTableAPI.GenerateBoard(height, width, colour);
+                _threads = new List<Thread>();
             }
 
             public override void AddBall(BallDataAPI ball)
             {
-                lock (_lock)
-                {
-                    table.AddBall(ball);
-                }
-            }
-
-            public override void StartMovingBalls()
-            {
-
-                _active = true;
-                foreach (var ball in table.GetBalls())
-                {
-                    Thread thread = new Thread(() =>
-                    {
-                        while (_active)
-                        {
-
-                            lock (_lock)
-                            {
-                                ball.UpdateBall(width, height);
-                            }
-                            Thread.Sleep(10);
-                        }
-                    })
-                    {
-                        IsBackground = true
-                    };
-                    _threads.Add(thread);
-                    thread.Start();
-                }
-            }
-
-            public override void StopMovingBalls()
-            {
-                _active = false;
-                foreach (var thread in _threads)
-                {
-                    thread.Join();
-                }
+                lock (_lock) table.AddBall(ball);
             }
 
             public override List<BallDataAPI> GetBalls()
@@ -92,6 +50,31 @@ namespace Data
                 table.ClearBalls();
             }
 
+            public override void StartMovingBalls()
+            {
+                _active = true;
+                foreach (var ball in table.GetBalls())
+                {
+                    Thread thread = new Thread(() =>
+                    {
+                        while (_active)
+                        {
+                            lock (_lock) ball.UpdateBall(width, height);
+                            Thread.Sleep(10);
+                        }
+                    })
+                    { IsBackground = true };
+
+                    _threads.Add(thread);
+                    thread.Start();
+                }
+            }
+
+            public override void StopMovingBalls()
+            {
+                _active = false;
+                foreach (var thread in _threads) thread.Join();
+            }
         }
     }
 }

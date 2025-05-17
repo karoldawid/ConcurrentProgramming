@@ -1,82 +1,56 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Presentation.Model;
-using Presentation.ModelView.MVVMCore;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Data;
 using System.Windows;
+using Presentation.Model;
+using Presentation.ModelView.MVVMCore;
+using Data;
 
 namespace Presentation.ModelView
 {
     public class ModelView : BaseViewModel, INotifyPropertyChanged
     {
-        private MainAPI modelLayer;
-
+        private readonly MainAPI modelLayer;
         private string _ballCount = "";
-        public double _tableWidth = 1000;
-        public double _tableHeight = 600;
-        private double _canvasHeight = 600;
-        private double _canvasWidth = 1000;
-
         private bool _isRunning = false;
         private bool _canClear = false;
 
         public ModelView()
         {
-            this.modelLayer = MainAPI.GenerateTable(_tableWidth, _tableHeight);
+            modelLayer = MainAPI.GenerateTable(1000, 600);
+            InitializeCommands();
+        }
 
+        public double CanvasWidth { get; set; } = 1000;
+        public double CanvasHeight { get; set; } = 600;
+
+        public string BallCount
+        {
+            get => _ballCount;
+            set { _ballCount = value; RaisePropertyChanged(); }
+        }
+
+        public ObservableCollection<BallModelAPI> Balls => modelLayer.Balls;
+
+        public RelayCommand AddCommand { get; private set; }
+        public RelayCommand ClearCommand { get; private set; }
+        public RelayCommand StartCommand { get; private set; }
+        public RelayCommand StopCommand { get; private set; }
+
+        private void InitializeCommands()
+        {
             AddCommand = new RelayCommand(AddBalls, () => !_canClear);
             ClearCommand = new RelayCommand(ClearBalls, () => _canClear);
             StartCommand = new RelayCommand(StartSimulation, () => !_isRunning);
             StopCommand = new RelayCommand(StopSimulation, () => _isRunning);
         }
 
-        public ObservableCollection<BallModelAPI> Balls => this.modelLayer.Balls;
-
-        public RelayCommand AddCommand { get; }
-        public RelayCommand ClearCommand { get; }
-        public RelayCommand StartCommand { get; }
-        public RelayCommand StopCommand { get; }
-
-        public double CanvasWidth
-        {
-            get => _canvasWidth;
-            set
-            {
-                _canvasWidth = value;
-                RaisePropertyChanged();
-            }
-
-        }
-
-        public double CanvasHeight
-        {
-            get => _canvasHeight;
-            set
-            {
-                _canvasHeight = value;
-                RaisePropertyChanged();
-            }
-
-        }
-
-        public string BallCount
-        {
-            get => _ballCount;
-            set
-            {
-                _ballCount = value;
-                RaisePropertyChanged();
-            }
-        }
-
         private void AddBalls()
         {
             try
             {
-                int count = int.Parse(_ballCount);
+                var count = int.Parse(_ballCount);
                 if (count < 0) throw new ArgumentException();
 
                 _canClear = true;

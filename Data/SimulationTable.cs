@@ -1,8 +1,6 @@
 ﻿namespace Data;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-
 
 public abstract class SimulationTableAPI
 {
@@ -14,40 +12,36 @@ public abstract class SimulationTableAPI
     public abstract double _tableWidth { get; }
     public abstract double _tableHeight { get; }
     public abstract string _colour { get; }
-    public abstract event PropertyChangedEventHandler PropertyChanged;
-
+    public abstract List<BallDataAPI> GetBalls();
     public abstract void AddBall(BallDataAPI ball);
     public abstract void ClearBalls();
-    public abstract List<BallDataAPI> GetBalls();
+    public abstract event PropertyChangedEventHandler PropertyChanged;
 }
 
 public class SimulationTable : SimulationTableAPI, INotifyPropertyChanged
 {
-    private double tableHeight;
-    private double tableWidth;
-    private string colour;
-    private List<BallDataAPI> balls;
+    private readonly List<BallDataAPI> balls;
+    private readonly double tableHeight;
+    private readonly double tableWidth;
+    private readonly string colour;
 
     public SimulationTable(double tableHeight, double tableWidth, string colour)
     {
         this.tableHeight = tableHeight;
         this.tableWidth = tableWidth;
         this.colour = colour;
-        this.balls = new List<BallDataAPI>();
-    }
-
-    public override void AddBall(BallDataAPI ball)
-    {
-        balls.Add(ball);
+        balls = new List<BallDataAPI>();
     }
 
     public override double _tableHeight => tableHeight;
     public override double _tableWidth => tableWidth;
     public override string _colour => colour;
 
-    public override List<BallDataAPI> GetBalls()
+    public override List<BallDataAPI> GetBalls() => balls;
+
+    public override void AddBall(BallDataAPI ball)
     {
-        return balls;
+        balls.Add(ball);
     }
 
     public override void ClearBalls()
@@ -56,10 +50,8 @@ public class SimulationTable : SimulationTableAPI, INotifyPropertyChanged
     }
 
     public override event PropertyChangedEventHandler PropertyChanged;
-
     protected virtual void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-

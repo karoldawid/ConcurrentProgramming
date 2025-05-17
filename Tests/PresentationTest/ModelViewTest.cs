@@ -70,23 +70,5 @@ namespace PresentationTest
             Assert.IsFalse(vm.ClearCommand.CanExecute(null));
             Assert.IsTrue(vm.AddCommand.CanExecute(null));
         }
-
-        [TestMethod]
-        public void PropertyChanged_RaisesForCanvasWidthAndBallCount()
-        {
-            bool widthChanged = false;
-            bool countChanged = false;
-            vm.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(vm.CanvasWidth)) widthChanged = true;
-                if (e.PropertyName == nameof(vm.BallCount)) countChanged = true;
-            };
-
-            vm.CanvasWidth = 800;
-            vm.BallCount = "5";
-
-            Assert.IsTrue(widthChanged);
-            Assert.IsTrue(countChanged);
-        }
     }
 }

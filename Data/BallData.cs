@@ -9,6 +9,14 @@ public abstract class BallDataAPI
         return new BallData(ID, X, Y, r, colour, dirX, dirY, mass);
     }
 
+    public abstract double velX { get; set; }
+    public abstract double velY { get; set; }
+    public abstract double posX { get; set; }
+    public abstract double posY { get; set; }
+    public abstract bool IsActive { get; set; }
+    public abstract void UpdateBall(double tableWidth, double tableHeight);
+    public abstract event PropertyChangedEventHandler PropertyChanged;
+
     public int ID { get; set; }
     public double X { get; set; }
     public double Y { get; set; }
@@ -18,99 +26,66 @@ public abstract class BallDataAPI
     public int dirY { get; set; }
     public double mass { get; set; }
 
-    private bool _active = true;
-    public abstract double velX { get; set; }
-    public abstract double velY { get; set; }
-    public abstract double posX { get; set; }
-    public abstract double posY { get; set; }
-    public abstract bool IsActive { get; set; }
-    public abstract void UpdateBall(double tableWidth, double tableHeight);
-
-    public abstract event PropertyChangedEventHandler PropertyChanged;
-
     private class BallData : BallDataAPI, INotifyPropertyChanged
     {
+        private readonly object _syncObject = new object();
         private double _velX;
         private double _velY;
-        private readonly object _syncObject = new object();
+        private bool _active = true;
+
         public BallData(int ID, double X, double Y, double r, string colour, int dirX, int dirY, double mass)
         {
             this.ID = ID;
             this.X = X;
             this.Y = Y;
-            this.colour = colour;
             this.r = r;
+            this.colour = colour;
             this.dirX = dirX;
-            this.mass = mass;
             this.dirY = dirY;
-            this._velX = 1;
-            this._velY = 1;
+            this.mass = mass;
+            _velX = 1;
+            _velY = 1;
         }
 
         public override double velX
         {
             get => _velX;
-            set
-            {
-                _velX = value;
-                OnPropertyChanged(nameof(velX));
-            }
+            set { _velX = value; OnPropertyChanged(nameof(velX)); }
         }
+
         public override double velY
         {
             get => _velY;
-            set
-            {
-                _velY = value;
-                OnPropertyChanged(nameof(velY));
-            }
+            set { _velY = value; OnPropertyChanged(nameof(velY)); }
         }
+
         public override double posX
         {
             get => X;
-            set
-            {
-                if (X != value)
-                {
-                    X = value;
-                    OnPropertyChanged(nameof(posX));
-                }
-            }
+            set { if (X != value) { X = value; OnPropertyChanged(nameof(posX)); } }
         }
+
         public override double posY
         {
             get => Y;
-            set
-            {
-                if (Y != value)
-                {
-                    Y = value;
-                    OnPropertyChanged(nameof(posY));
-                }
-            }
+            set { if (Y != value) { Y = value; OnPropertyChanged(nameof(posY)); } }
         }
+
+        public override bool IsActive
+        {
+            get => _active;
+            set { _active = value; OnPropertyChanged(nameof(IsActive)); }
+        }
+
         public override void UpdateBall(double tableWidth, double tableHeight)
         {
             lock (_syncObject)
             {
-                if (posX + velX * dirX < 0 || posX + velX * dirX > tableWidth)
-                    dirX = -dirX;
-
-                if (posY + velY * dirY < 0 || posY + velY * dirY > tableHeight)
-                    dirY = -dirY;
+                if (posX + velX * dirX < 0 || posX + velX * dirX > tableWidth) dirX = -dirX;
+                if (posY + velY * dirY < 0 || posY + velY * dirY > tableHeight) dirY = -dirY;
 
                 posX += velX * dirX;
                 posY += velY * dirY;
-            }
-        }
-        public override bool IsActive
-        {
-            get => _active;
-            set
-            {
-                _active = value;
-                OnPropertyChanged(nameof(IsActive));
-
             }
         }
 
